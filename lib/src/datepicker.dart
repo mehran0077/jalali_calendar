@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persian_date/persian_date.dart';
+import 'persian_date.dart' as PD;
 
 typedef DateChangedCallback(int year, int month, int date);
 
@@ -29,6 +30,8 @@ class DatePicker {
     int initialDay,
     Widget cancel,
     Widget confirm,
+    TextDirection textDirection: TextDirection.rtl,
+    TextStyle textStyle,  
     DateChangedCallback onChanged,
     DateChangedCallback onConfirm,
     dateFormat: _kDateFormatDefault,
@@ -59,6 +62,9 @@ class DatePicker {
         initialDate: initialDay,
         cancel: cancel,
         confirm: confirm,
+        textDirection: textDirection,
+        textStyle: textStyle ??
+            TextStyle(color: Color(0xFF000046), fontSize: _kDatePickerFontSize),       
         onChanged: onChanged,
         onConfirm: onConfirm,
         dateFormat: dateFormat,
@@ -80,6 +86,8 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
     this.initialDate,
     this.cancel,
     this.confirm,
+    this.textDirection,
+    this.textStyle,
     this.onChanged,
     this.onConfirm,
     this.theme,
@@ -92,6 +100,8 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
   final bool showTitleActions;
   final int minYear, maxYear, initialYear, initialMonth, initialDate;
   final Widget cancel, confirm;
+  final TextDirection textDirection;
+  final TextStyle textStyle;
   final DateChangedCallback onChanged;
   final DateChangedCallback onConfirm;
   final ThemeData theme;
@@ -134,6 +144,8 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
         initialDate: initialDate,
         cancel: cancel,
         confirm: confirm,
+        textDirection: textDirection,
+        textStyle: textStyle,
         onChanged: onChanged,
         locale: locale,
         dateFormat: dateFormat,
@@ -158,6 +170,8 @@ class _DatePickerComponent extends StatefulWidget {
       this.initialDate: 1,
       this.cancel,
       this.confirm,
+      this.textDirection,
+      this.textStyle,
       this.onChanged,
       this.locale,
       this.dateFormat});
@@ -168,6 +182,9 @@ class _DatePickerComponent extends StatefulWidget {
   final Widget cancel;
   final Widget confirm;
 
+  final TextDirection textDirection;
+  final TextStyle textStyle;
+  
   final _DatePickerRoute route;
 
   final String locale;
@@ -311,11 +328,14 @@ class _DatePickerState extends State<_DatePickerComponent> {
   Widget _renderPickerView() {
     Widget itemView = _renderItemView();
     if (widget.route.showTitleActions) {
-      return Column(
-        children: <Widget>[
-          _renderTitleActionsView(),
-          itemView,
-        ],
+      return Directionality(
+        textDirection: widget.textDirection,
+        child: Column(
+          children: <Widget>[
+            _renderTitleActionsView(),
+            itemView,
+          ],
+        ),
       );
     }
     return itemView;
@@ -342,8 +362,10 @@ class _DatePickerState extends State<_DatePickerComponent> {
               alignment: Alignment.center,
               child: Text(
                 '${widget.minYear + index}$yearAppend',
-                style: TextStyle(
-                    color: Color(0xFF000046), fontSize: _kDatePickerFontSize),
+                style: widget.textStyle ??
+                    TextStyle(
+                        color: Color(0xFF000046),
+                        fontSize: _kDatePickerFontSize),
                 textAlign: TextAlign.start,
               ),
             );
@@ -374,18 +396,20 @@ class _DatePickerState extends State<_DatePickerComponent> {
                 child: Row(
                   children: <Widget>[
                     new Expanded(
-                        child: Text(
-                      (format == null)
-                          // index is 0,1,2...11  month is 1,2,3...12
-                          ? '${index + 1}$monthAppend'
-                          : '${_formatMonthComplex(index, format)}$monthAppend',
-                      style: TextStyle(
-                          color: Color(0xFF000046),
-                          fontSize: _kDatePickerFontSize),
-                      textAlign: TextAlign.center,
-                      softWrap: false,
-                      overflow: TextOverflow.fade,
-                    ))
+                      child: Text(
+                        (format == null)
+                            // index is 0,1,2...11  month is 1,2,3...12
+                            ? '${PD.PersianDate().monthLong[index]}$monthAppend'
+                            : '${_formatMonthComplex(index, format)}$monthAppend',
+                        style: widget.textStyle ??
+                            TextStyle(
+                                color: Color(0xFF000046),
+                                fontSize: _kDatePickerFontSize),
+                        textAlign: TextAlign.center,
+                        softWrap: false,
+                        overflow: TextOverflow.fade,
+                      ),
+                    )
                   ],
                 ),
               );
@@ -414,8 +438,10 @@ class _DatePickerState extends State<_DatePickerComponent> {
                 alignment: Alignment.center,
                 child: Text(
                   "${index + 1}$dayAppend",
-                  style: TextStyle(
-                      color: Color(0xFF000046), fontSize: _kDatePickerFontSize),
+                  style: widget.textStyle ??
+                      TextStyle(
+                          color: Color(0xFF000046),
+                          fontSize: _kDatePickerFontSize),
                   textAlign: TextAlign.start,
                 ),
               );
